@@ -16,7 +16,7 @@ const OPENSEARCH_URL = process.env.OPENSEARCH_URL || "http://localhost:9200";
 // Create axios instance for OpenSearch
 const opensearchClient = axios.create({
   baseURL: OPENSEARCH_URL,
-  timeout: 10000, // 10 seconds timeout
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -46,6 +46,7 @@ app.post("/api/opensearch/search", async (req, res) => {
   try {
     const { query, filters } = req.body;
 
+    // Construct the OpenSearch query
     const fullQuery = {
       size: 20,
       query: {
@@ -55,11 +56,13 @@ app.post("/api/opensearch/search", async (req, res) => {
                 {
                   multi_match: {
                     query,
-                    fields: ["eventName", "category", "location"],
+                    fields: ["eventName.analyzed^3", "category.analyzed^2", "location"], // Use analyzed fields for full-text search
+                    type: "best_fields",
+                    fuzziness: "AUTO", // Allow fuzzy matching
                   },
                 },
               ]
-            : [{ match_all: {} }],
+            : [{ match_all: {} }], // Default to match_all if no query is provided
           filter: [
             ...(filters?.priceRange
               ? [
@@ -102,13 +105,22 @@ app.post("/api/opensearch/search", async (req, res) => {
       },
     };
 
+    // Send the query to OpenSearch
     const response = await opensearchClient.post("/events/_search", fullQuery);
+
+    // Handle the response and ensure empty buckets are handled gracefully
     res.status(200).json({
-      hits: response.data.hits.hits,
-      aggregations: response.data.aggregations,
+      hits: response.data.hits.hits || [],
+      aggregations: {
+        price_ranges: response.data.aggregations?.price_ranges?.buckets || [],
+        categories: response.data.aggregations?.categories?.buckets || [],
+        locations: response.data.aggregations?.locations?.buckets || [],
+      },
     });
   } catch (error) {
     console.error("Error querying OpenSearch:", error.message);
+
+    // Return a detailed error response
     res.status(500).json({
       message: "Error querying OpenSearch",
       error: error.message,
