@@ -188,8 +188,8 @@ const EventSearch = () => {
               <FontAwesomeIcon icon={faTags} className="text-blue-500 mr-2" />
               Categories
             </h3>
-            {facets?.categories?.buckets?.length > 0 ? (
-              facets.categories.buckets.map((bucket) => (
+            {facets?.categories?.length > 0 ? (
+              facets.categories.map((bucket) => (
                 <div key={bucket.key} className="flex items-center mb-2">
                   <Checkbox
                     id={`category-${bucket.key}`}
@@ -213,8 +213,8 @@ const EventSearch = () => {
               <FontAwesomeIcon icon={faMapMarkerAlt} className="text-blue-500 mr-2" />
               Locations
             </h3>
-            {facets?.locations?.buckets?.length > 0 ? (
-              facets.locations.buckets.map((bucket) => (
+            {facets?.locations?.length > 0 ? (
+              facets.locations.map((bucket) => (
                 <div key={bucket.key} className="flex items-center mb-2">
                   <Checkbox
                     id={`location-${bucket.key}`}

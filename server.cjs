@@ -53,34 +53,34 @@ app.post("/api/opensearch/search", async (req, res) => {
         bool: {
           must: query
             ? [
-                {
-                  multi_match: {
-                    query,
-                    fields: ["eventName.analyzed^3", "category.analyzed^2", "location"], // Use analyzed fields for full-text search
-                    type: "best_fields",
-                    fuzziness: "AUTO", // Allow fuzzy matching
-                  },
+              {
+                multi_match: {
+                  query,
+                  fields: ["eventName.analyzed^3", "category.analyzed^2", "location"],
+                  type: "best_fields",
+                  // fuzziness: "AUTO",
                 },
-              ]
-            : [{ match_all: {} }], // Default to match_all if no query is provided
+              },
+            ]
+            : [{ match_all: {} }],
           filter: [
             ...(filters?.priceRange
               ? [
-                  {
-                    range: {
-                      price: {
-                        gte: filters.priceRange[0],
-                        lte: filters.priceRange[1],
-                      },
+                {
+                  range: {
+                    price: {
+                      gte: filters.priceRange[0],
+                      lte: filters.priceRange[1],
                     },
                   },
-                ]
+                },
+              ]
               : []),
             ...(filters?.categories?.length
-              ? [{ terms: { "category.keyword": filters.categories } }]
+              ? [{ terms: { "category": filters.categories } }]
               : []),
             ...(filters?.locations?.length
-              ? [{ terms: { "location.keyword": filters.locations } }]
+              ? [{ terms: { "location": filters.locations } }]
               : []),
           ],
         },
@@ -97,10 +97,10 @@ app.post("/api/opensearch/search", async (req, res) => {
           },
         },
         categories: {
-          terms: { field: "category.keyword", size: 10 },
+          terms: { field: "category", size: 10 },
         },
         locations: {
-          terms: { field: "location.keyword", size: 10 },
+          terms: { field: "location", size: 10 },
         },
       },
     };
@@ -145,10 +145,10 @@ app.post("/api/opensearch/facets", async (req, res) => {
           },
         },
         categories: {
-          terms: { field: "category.keyword", size: 10 },
+          terms: { field: "category", size: 10 },
         },
         locations: {
-          terms: { field: "location.keyword", size: 10 },
+          terms: { field: "location", size: 10 },
         },
       },
     };
